@@ -64,4 +64,17 @@ public class QueryTest {
         });
   }
 
+  @Test public void testChain() {
+    sql.query("select * from person")
+      .execute()
+      .subscribe((r1) -> {
+          sql.query("select * from title where title = :title")
+            .parameters(r1)
+            .execute()
+            .subscribe((r2) -> {
+                assertEquals("Chain should use result from one query as parameters in another", "I am a man", r2.get("description"));
+              });
+        });
+  }
+
 }
