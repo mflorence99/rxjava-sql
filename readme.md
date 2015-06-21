@@ -150,7 +150,7 @@ handler is invoked and no results are returned.
 Often of course it is necessary to traverse all the rows in the database that satisfy the
 query but this can rarely be performed naively by requesting them all at once.
 
-This can be achieved by calling ```allRows(true)```. In this case, a separate database
+Full traversal is best achieved by calling ```allRows(true)```. In this case, a separate database
 connection and JDBC ```ResultSet``` will be used to 'window' through all the results in a 
 way that is completely transparent to the downstream subscribers.
 
@@ -164,4 +164,122 @@ exhausting available memory.
 ## Result Model
 
 Many if not most similar libraries (including Moten's ```rxjava-jdbc```) use some kind of
-ORM to map query results to Java classes.
+ORM to map query results to Java classes. While common, this approach is not without problems.
+For example:
+
+- A schema change can require the entire model to be rebuilt and all of its consumers redeployed
+
+- Even a backwards-compatible schema change can _break_ the model
+
+The success of several large projects has led me to an alternative, one which is definitely not 
+strongly-typed like an ORM but one which is much more suited to the more fluid schemas found
+in the Q component of CQRS patterns and in particular in the [ReportingDatabase]
+(http://martinfowler.com/bliki/ReportingDatabase.html) pattern.
+
+Moreover, dynamic languages such as JavaScript are better matched to functional
+programming than Java. They allow the easy creation of _standard_ data structures 
+(objects, arrays, hashes etc) manipulated through _custom_ functions.
+
+```rxjava-sql``` models all results in a single ```Result``` class. In JavaScript, we would
+conveniently access properties like this: ```result.name```. This isn't possible in a static
+language like Java, so instead ```Result``` is essentially a hash of name/value pairs.
+
+```Java
+  sql.query("select description as theTitle from title, person" + 
+            " where person.first = ? and person.last = ?" + 
+            " and person.title = title.title")
+    .parameters("Lucky", "Florence")
+    .execute()
+    .subscribe((result) -> { 
+        log.info("Description is {}", result.get("theTitle"));
+      });
+```
+
+```get``` is a universal accessor that takes the name of an SQL column (or its alias) exactly
+as it was coded in the ```select``` statement.
+
+> See the [Javadoc](https://mflorence99.github.io/rxjava-sql-docs/javadoc/info/mflo/rxjava_sql/Result.html)
+for ```get``` variants.
+
+> Currently, only the stringified value is returned. Later, variants like ```getDouble``` will
+be supported. Likewise, SQL ```NULL``` is not recognized.
+
+```has``` takes a name like ```get``` and returns a boolean indicating if a corresponding value
+is present in the result.
+
+
+### Result Immutability
+
+In the functional world, it is very desirable that results be immutable. A ```set``` operation is
+supported, but it does not directly change the result. Instead, changes are accumulated and are
+used to create a shallow copy.
+
+```Java
+  sql.query("select * from person")
+    .execute()
+    .map((result) -> {
+        result.set("name", String.join(" ", result.get("first"), result.get("last")) 
+        return result.fromChanges();
+      })
+    .subscribe((result) -> { 
+        long.info(result.get("name"));
+      });
+```
+
+
+### Results as Parameters
+
+A result from one query may be used as parameters in another:
+
+```Java
+  sql.query("select * from person")
+    .execute()
+    .subscribe((r1) -> { 
+        sql.query("select * from title where title = :title")
+          .parameters(r1)
+          .execute()
+          .subscribe((r2) -> {
+              log.info("{}'s title is {}", r1.get("first"), r2.get("description"));
+            });
+      });
+```
+
+
+## Update, Insert and Delete Operations
+
+```rxjava-sql``` supports C(r)UD operations, but synchronously and not through ```Observables```.
+
+```Java
+  sql.update("delete from person where first = ?)
+    .parameters("Lucky")
+    .execute();
+```
+
+A special ```batch``` API supports an arbitrarily long sequence of DML or DDL executed at once.
+The SQL statements can be represented as a ```Reader``` or as a ```List```.
+
+```Java
+  sql.batch(new InputStreamReader(getClass().getResourceAsStream("/testdata.sql")))
+    .execute();
+```
+
+> I am inclined to think that C(r)UD and the complications for then having to support
+transactions may not be appropriate for a functional API, especially if reads and writes
+are separated as in the CQRS pattern. Perhaps a different style API is better suited?
+
+
+## Roadmap
+
+Clearly a project as this stage of development has a huge roadmap ahead of it. However, calling
+on the spirit of YAGNI, I plan to add few features before battle testing the code in a real-life
+project. 
+
+> TODO: I will update this section as I learn more.
+
+> In short order, ```Result``` will be expanded to support more than stringified values. However,
+dates, times and timezones are really complicated and there's no point until I have sorted out
+those details.
+
+> Similarly, BLOBs and CLOBs: there are good reasons to avoid BLOBs altogether and treat CLOBs 
+simply as LONGTEXT. Where a column is not intended to be indexed, automatic compression and
+serialization is appropriate.
