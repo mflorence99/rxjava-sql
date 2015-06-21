@@ -110,7 +110,7 @@ public final class Query implements Parameters {
    * Fluent API to configure Query to limit count of rows retrieved. If <code>limit</code>
    * is not called, only the first matching row is retrieved. If <code>allRows(true)</code>
    * is called, the number of rows is not limited but instead retrieval is windowed
-   * acciording to the <code>limit</code> specification.
+   * according to the <code>limit</code> specification.
    *
    * @param   limit [0] indicates starting position
    *                [1] indicates maximum number of rows to retrieve
@@ -121,6 +121,22 @@ public final class Query implements Parameters {
    */
   public Query limit(int[] limit) {
     this.limit = limit;
+    return this;
+  }
+
+  /**
+   * Fluent API to configure Query to limit count of rows retrieved.
+   *
+   * @param   start starting position
+   * @param   count maximum number of rows to retrieve
+   *
+   * @return  this Query
+   *
+   * @see     #limit(int[])
+   */
+  public Query limit(int start,
+                     int count) {
+    this.limit = new int[] { start, count };
     return this;
   }
 

@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 public class QueryTest {
 
-  private static final Logger log = LoggerFactory.getLogger(SQLTest.class);
+  private static final Logger log = LoggerFactory.getLogger(QueryTest.class);
 
   private DataSource ds;
   private SQL sql;
