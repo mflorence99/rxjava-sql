@@ -2,19 +2,19 @@
 
 ```rxjava-sql``` is very much in pre-release status and no artifacts have been released yet,
 except for [preliminary Javadocs](https://mflorence99.github.io/rxjava-sql-docs/javadoc/index.html).
- 
- 
+
+
 ## Motivation
 
-I became very interested in functional reactive programming and decided to experiment by 
+I became very interested in functional reactive programming and decided to experiment by
 building a library to functionally compose SQL database calls using JDBC and RxJava. Of course,
 I immediately discovered that [David Moten's rxjava-jdbc](https://github.com/davidmoten/rxjava-jdbc) -
 a most excellent and complete implementation - already existed.
 
 Nonetheless, I wanted to learn and based on many years of using JDBC the old-fashioned way I had
-some different directions - mostly inspired by 
-[YAGNI](https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it) and 
-[CQRS](http://martinfowler.com/bliki/CQRS.html) - which I wanted to take an API.
+some different directions - mostly inspired by
+[YAGNI](https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it) and
+[CQRS](http://martinfowler.com/bliki/CQRS.html) - in which I wanted to take an API.
 
 
 ## Test Dataset
@@ -23,14 +23,14 @@ I'll draw some usage examples from this test dataset:
 
 ```SQL
   create table person(first varchar(255), last varchar(255), title varchar(255));
-  
+
   insert into person values('Mark', 'Florence', 'Mr');
   insert into person values('Lucky', 'Florence', 'Cat');
   insert into person values('Lynn', 'Hendrickson', 'Ms');
   insert into person values('Max', 'Hendrickson', 'Cat');
-  
+
   create table title(title varchar(255), description varchar(255));
-  
+
   insert into title values('Cat', 'I am a cat');
   insert into title values('Mr', 'I am a man');
   insert into title values('Ms', 'I am a woman');
@@ -44,8 +44,8 @@ We wish to execute a typical ad-hoc query in the functional style:
 ```Java
   SQL sql = new SQL( /* some data source */ );
   ...
-  sql.query("select description from title, person" + 
-            " where person.first = ? and person.last = ?" + 
+  sql.query("select description from title, person" +
+            " where person.first = ? and person.last = ?" +
             " and person.title = title.title")
     .parameters("Lucky", "Florence")
     .execute()
@@ -56,8 +56,8 @@ We wish to execute a typical ad-hoc query in the functional style:
 Parameters can be named as an alternative to standard positional notation:
 
 ```Java
-  sql.query("select description from title, person" + 
-            " where person.first = :first and person.last = :last" + 
+  sql.query("select description from title, person" +
+            " where person.first = :first and person.last = :last" +
             " and person.title = title.title")
     .parameters(new HashMap<String,Object>() {{
         put("first", "Lucky");
@@ -71,7 +71,7 @@ But positional and named parameters cannot both appear in the same query.
 ## Obtaining a ```DataSource```
 
 There's only one way to establish the context for an SQL operation in ```rxjava-sql```
-and that's through a ```DataSource```. 
+and that's through a ```DataSource```.
 This example uses [Apache Commons DBCP](https://commons.apache.org/proper/commons-dbcp/):
 
 ```Java
@@ -151,12 +151,12 @@ Often of course it is necessary to traverse all the rows in the database that sa
 query but this can rarely be performed naively by requesting them all at once.
 
 Full traversal is best achieved by calling ```allRows(true)```. In this case, a separate database
-connection and JDBC ```ResultSet``` will be used to 'window' through all the results in a 
+connection and JDBC ```ResultSet``` will be used to 'window' through all the results in a
 way that is completely transparent to the downstream subscribers.
 
 The window used is defined by the ```limit``` call. Strictly speaking, no such call is required
 but if you use ```allRows(true)``` without calling ```limit``` each ```ResultSet``` will
-only contain one item. To better use database resources, select ```limit``` parameters that 
+only contain one item. To better use database resources, select ```limit``` parameters that
 balance a smaller number of connections with a ```ResultSet``` size that doesn't risk
 exhausting available memory.
 
@@ -171,13 +171,13 @@ For example:
 
 - Even a backwards-compatible schema change can _break_ the model
 
-The success of several large projects has led me to an alternative, one which is definitely not 
+The success of several large projects has led me to an alternative, one which is definitely not
 strongly-typed like an ORM but one which is much more suited to the more fluid schemas found
 in the Q component of CQRS patterns and in particular in the [ReportingDatabase]
 (http://martinfowler.com/bliki/ReportingDatabase.html) pattern.
 
 Moreover, dynamic languages such as JavaScript are better matched to functional
-programming than Java. They allow the easy creation of _standard_ data structures 
+programming than Java. They allow the easy creation of _standard_ data structures
 (objects, arrays, hashes etc) manipulated through _custom_ functions.
 
 ```rxjava-sql``` models all results in a single ```Result``` class. In JavaScript, we would
@@ -185,12 +185,12 @@ conveniently access properties like this: ```result.name```. This isn't possible
 language like Java, so instead ```Result``` is essentially a hash of name/value pairs.
 
 ```Java
-  sql.query("select description as theTitle from title, person" + 
-            " where person.first = ? and person.last = ?" + 
+  sql.query("select description as theTitle from title, person" +
+            " where person.first = ? and person.last = ?" +
             " and person.title = title.title")
     .parameters("Lucky", "Florence")
     .execute()
-    .subscribe((result) -> { 
+    .subscribe((result) -> {
         log.info("Description is {}", result.get("theTitle"));
       });
 ```
@@ -218,10 +218,10 @@ used to create a shallow copy.
   sql.query("select * from person")
     .execute()
     .map((result) -> {
-        result.set("name", String.join(" ", result.get("first"), result.get("last")) 
+        result.set("name", String.join(" ", result.get("first"), result.get("last"))
         return result.fromChanges();
       })
-    .subscribe((result) -> { 
+    .subscribe((result) -> {
         long.info(result.get("name"));
       });
 ```
@@ -234,7 +234,7 @@ A result from one query may be used as parameters in another:
 ```Java
   sql.query("select * from person")
     .execute()
-    .subscribe((r1) -> { 
+    .subscribe((r1) -> {
         sql.query("select * from title where title = :title")
           .parameters(r1)
           .execute()
@@ -272,7 +272,7 @@ are separated as in the CQRS pattern. Perhaps a different style API is better su
 
 Clearly a project as this stage of development has a huge roadmap ahead of it. However, calling
 on the spirit of YAGNI, I plan to add few features before battle testing the code in a real-life
-project. 
+project.
 
 > TODO: I will update this section as I learn more.
 
@@ -280,6 +280,6 @@ project.
 dates, times and timezones are really complicated and there's no point until I have sorted out
 those details.
 
-> Similarly, BLOBs and CLOBs: there are good reasons to avoid BLOBs altogether and treat CLOBs 
+> Similarly, BLOBs and CLOBs: there are good reasons to avoid BLOBs altogether and treat CLOBs
 simply as LONGTEXT. Where a column is not intended to be indexed, automatic compression and
 serialization is appropriate.
