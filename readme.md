@@ -222,7 +222,7 @@ used to create a shallow copy.
         return result.fromChanges();
       })
     .subscribe((result) -> {
-        long.info(result.get("name"));
+        log.info(result.get("name"));
       });
 ```
 
@@ -270,7 +270,7 @@ are separated as in the CQRS pattern. Perhaps a different style API is better su
 
 ## Roadmap
 
-Clearly a project as this stage of development has a huge roadmap ahead of it. However, calling
+Clearly a project at this stage of development has a huge roadmap ahead of it. However, calling
 on the spirit of YAGNI, I plan to add few features before battle testing the code in a real-life
 project.
 
