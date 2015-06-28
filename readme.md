@@ -198,11 +198,13 @@ language like Java, so instead ```Result``` is essentially a hash of name/value 
 ```get``` is a universal accessor that takes the name of an SQL column (or its alias) exactly
 as it was coded in the ```select``` statement.
 
-> See the [Javadoc](https://mflorence99.github.io/rxjava-sql-docs/javadoc/info/mflo/rxjava_sql/Result.html)
+> See the [Javadoc](https://mflorence99.github.io/rxjava-sql-docs/javadoc/io/mflo/rxjava_sql/Result.html)
 for ```get``` variants.
 
 > Currently, only the stringified value is returned. Later, variants like ```getDouble``` will
 be supported. Likewise, SQL ```NULL``` is not recognized.
+
+> Consider implementing existing ```Tuple``` interfaces instead
 
 ```has``` takes a name like ```get``` and returns a boolean indicating if a corresponding value
 is present in the result.
