@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * but the underlying <code>Result</code> is not changed. Instead, a terminal operation
  * in the fluent chain like <code>fromChanges</code> creates a shallow clone.</p>
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 

@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Initiate SQL operations against a <code>DataSource</code>.
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 

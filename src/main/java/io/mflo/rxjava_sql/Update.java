@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * <p>An Uopdate is created by the <code>SQL.update</code> method.
  * A fluent API configures the Update until it is ready to {@link #execute}.</p>
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 public final class Update implements Parameters {

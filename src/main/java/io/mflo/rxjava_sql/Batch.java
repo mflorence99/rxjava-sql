@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * <p><b>Note:</b> only the <code>execute()</code> method is currently
  * defined for this class.</p>
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 

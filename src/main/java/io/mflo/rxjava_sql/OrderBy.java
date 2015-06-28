@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.util.Arrays;
 
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Model SQL order by clause
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 

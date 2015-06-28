@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.lang.StringBuffer;
 
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * Support the <code>parameters</code> fluent API on the various
  * SQL statement builder classes.
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 

@@ -1,4 +1,4 @@
-package info.mflo.rxjava_sql;
+package io.mflo.rxjava_sql;
 
 import java.io.InputStreamReader;
 
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Unit tests for <code>Query</code>
  *
- * @author      https://github.com/mflorence99/mflorence99.github.io
+ * @author      http://mflo.io
  * @version     0.0.1
  */
 
