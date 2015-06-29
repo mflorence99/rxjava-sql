@@ -33,10 +33,21 @@ public class QueryTest {
   private DataSource ds;
   private SQL sql;
 
+  private static String dockerize(String uri) {
+    String host = System.getenv("DB_PORT_3306_TCP_ADDR");
+    if (host != null)
+      uri = uri.replace("localhost", host);
+    String pw = System.getenv("DB_ENV_MYSQL_ROOT_PASSWORD");
+    if (pw != null)
+      uri = uri.replace("beerhunter", pw);
+    return uri;
+  }
+
   @Before public void setUp() throws Exception {
     Properties properties = new Properties();
     properties.setProperty("driverClassName", "com.mysql.jdbc.Driver");
-    properties.setProperty("url", "jdbc:mysql://localhost/test?user=root&password=beerhunter");
+    properties.setProperty("url",
+      dockerize("jdbc:mysql://localhost/test?user=root&password=beerhunter"));
     ds = BasicDataSourceFactory.createDataSource(properties);
     sql = new SQL(ds);
     sql.batch(new InputStreamReader(getClass().getResourceAsStream("/testdata.sql"))).execute();
