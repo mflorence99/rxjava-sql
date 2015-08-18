@@ -1,38 +1,38 @@
 package io.mflo.rxjava_sql;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.persistence.Tuple;
+import javax.persistence.TupleElement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Model an individual result from an SQL query as an immutable map of name/value pairs.
- *
- * <p>A fluent API based on <code>set</code> operations allows deltas to be recorded,
- * but the underlying <code>Result</code> is not changed. Instead, a terminal operation
- * in the fluent chain like <code>fromChanges</code> creates a shallow clone.</p>
+ * Model an individual Result from an SQL query as a Tuple.
  *
  * @author      http://mflo.io
  * @version     0.0.1
  */
 
-public final class Result {
+public final class Result implements Tuple {
 
   // logger for this class
   private static final Logger log = LoggerFactory.getLogger(Result.class);
 
-  // immutable name/value state
-  private final Map<String,Object> attributes;
-
-  // deltas to original state as recorded by <code>set</code> operations
-  private final Map<String,Object> changes = new HashMap<>();
+  // name/value state
+  private final LinkedHashMap<String,Object> attributes;
+  private final Map<Integer,String> nameByOrdinal = new HashMap<>();
 
   /**
    * Construct an empty <code>Result</code>
    */
   public Result() {
-    this((Map)null);
+    this((LinkedHashMap)null);
   }
 
   /**
@@ -41,7 +41,7 @@ public final class Result {
    * @param   another <code>Result</code>
    */
   public Result(Result another) {
-    this((another != null)? another.attributes : (Map)null);
+    this((another != null)? another.attributes : (LinkedHashMap)null);
   }
 
   /**
@@ -49,43 +49,100 @@ public final class Result {
    *
    * @param   attributes name/value pairs
    */
-  public Result(Map<String,Object> attributes) {
-    this.attributes = (attributes != null)? new HashMap<>(attributes) : new HashMap<>();
+  protected Result(LinkedHashMap<String,Object> attributes) {
+    this.attributes = (attributes != null)? attributes : new LinkedHashMap<>();
+    int ordinal = 1;
+    for (String name : this.attributes.keySet())
+      nameByOrdinal.put(ordinal++, name);
   }
 
   /**
-   * Create a new <code>Result</code> accumulating all changes
+   * Get a value by ordinal
    *
-   * @return  result
+   * @param   ordinal positon in result
+   *
+   * @return  value
    */
-  public Result fromChanges() {
-    Result changed = new Result(this);
-    changed.attributes.putAll(this.changes);
-    return changed;
+  @Override public Object get(int ordinal) {
+    String name = nameByOrdinal.get(ordinal);
+    if (name == null)
+      throw new IllegalArgumentException("Ordinal out-of-range [" + ordinal + "]");
+    return get(name);
   }
 
   /**
-   * Get a stringified value by name, returning an empty string if not found
+   * Get a value by ordinal
+   *
+   * @param   ordinal positon in result
+   * @param   type of value
+   *
+   * @return  value
+   */
+  @Override public <X> X get(int ordinal,
+                             Class<X> type) {
+    Object untyped = get(ordinal);
+    if (untyped != null) {
+      if (!type.isInstance(untyped))
+        throw new IllegalArgumentException("Ordinal [" + ordinal + "] incompatible with [" + type + "]");
+    }
+    return (X)untyped;
+  }
+
+  /**
+   * Get a value by name
    *
    * @param   name used in SQL query
    *
-   * @return  value or empty string if not found
+   * @return  value
    */
-  public String get(String name) {
-    return get(name, "");
+  @Override public Object get(String name) {
+    if (!has(name))
+      throw new IllegalArgumentException("Unknown name [" + name + "]");
+    return attributes.get(name);
   }
 
   /**
-   * Get a stringified value by name, returning a default string if not found
+   * Get a value by name
    *
    * @param   name used in SQL query
-   * @param   dflt default if not found
+   * @param   type of value
    *
-   * @return  value or default if not found
+   * @return  value
    */
-  public String get(String name,
-                    String dflt) {
-    return has(name)? attributes.get(name).toString() : dflt;
+  @Override public <X> X get(String name,
+                             Class<X> type) {
+    Object untyped = get(name);
+    if (untyped != null) {
+      if (!type.isInstance(untyped))
+        throw new IllegalArgumentException("Name [" + name + "] incompatible with [" + type + "]");
+    }
+    return (X)untyped;
+  }
+
+  /**
+   * Get a value by element
+   *
+   * @param   element of tuple
+   *
+   * @return  value
+   */
+  @Override public <X> X get(TupleElement<X> element) {
+    return get(element.getAlias(), element.getJavaType());
+  }
+
+  /**
+   * Get all the values as elements
+   *
+   * @return  elements
+   */
+  @Override public List<TupleElement<?>> getElements() {
+    List<TupleElement<?>> elements = new ArrayList<>();
+    for (String name : attributes.keySet()) {
+      Object value = attributes.get(name);
+      Class type = (value != null)? value.getClass() : null;
+      elements.add(new Element(name, type));
+    }
+    return elements;
   }
 
   /**
@@ -104,22 +161,28 @@ public final class Result {
    *
    * @return  name/value pairs
    */
-  public Map<String,Object> getAttributes() {
+  protected Map<String,Object> getAttributes() {
     return new HashMap<>(attributes);
   }
 
   /**
-   * Changes a stringified value by name
+   * Mutate a value
    *
-   * @param   name used in SQL query
-   * @param   value to be used
-   *
-   * @return  value or default if not found
+   * @param  name of field
+   * @param  value to set
    */
-  public Result set(String name,
-                    String value) {
-    changes.put(name, value);
-    return this;
+  public void set(String name,
+                  Object value) {
+    attributes.put(name, value);
+  }
+
+  /**
+   * Get all the values as an array
+   *
+   * @return  values
+   */
+  @Override public Object[] toArray() {
+    return attributes.values().toArray();
   }
 
   /**
@@ -127,8 +190,50 @@ public final class Result {
    *
    * @return  stringified representation of <code>Result</code>
    */
-  public String toString() {
+  @Override public String toString() {
     return attributes.toString();
+  }
+
+  /**
+   * Thin implementation of TupleElement
+   */
+
+  private static class Element implements TupleElement {
+
+    // private state
+    private final String name;
+    private final Class type;
+
+    /**
+     * Construct one <code>TupleElement</code>
+     *
+     * @param   name
+     * @param   tuype
+     */
+    private Element(String name,
+                    Class type) {
+      this.name = name;
+      this.type = type;
+    }
+
+    /**
+     * Get name aka alias
+     *
+     * @return  name
+     */
+    @Override public String getAlias() {
+      return name;
+    }
+
+    /**
+     * Get type
+     *
+     * @return  type
+     */
+    @Override public Class getJavaType() {
+      return type;
+    }
+
   }
 
 }

@@ -7,6 +7,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -41,7 +42,7 @@ public final class Query implements Parameters {
   private boolean allRows = false;
   private int[] limit = new int[] { 0, 1 };
   private OrderBy[] orderBys = new OrderBy[0];
-  private Result parameters = new Result();
+  private Map<String,Object> parameters = new HashMap();
   private int queryTimeout = 0;
 
   /**
@@ -180,7 +181,7 @@ public final class Query implements Parameters {
    * @return  this Query
    */
   public Query parameters(Map<String,Object> parameters) {
-    parameters(new Result(parameters));
+    this.parameters = parameters;
     return this;
   }
 
@@ -192,12 +193,12 @@ public final class Query implements Parameters {
    *
    * <p><b>Note:</b> either named or positional parameters can be used, but not both.</p>
    *
-   * @param   parameters parameter values by name in a Result object
+   * @param   result parameter values by name in a Result object
    *
    * @return  this Query
    */
-  public Query parameters(Result parameters) {
-    this.parameters = parameters;
+  public Query parameters(Result result) {
+    this.parameters = result.getAttributes();
     return this;
   }
 
@@ -210,15 +211,15 @@ public final class Query implements Parameters {
    *
    * @throws  SQLException
    */
-  private Map<String,Object> populate(ResultSet rs) throws SQLException {
-    Map<String,Object> attributes = new HashMap<>();
+  private LinkedHashMap<String,Object> populate(ResultSet rs) throws SQLException {
+    LinkedHashMap<String,Object> attributes = new LinkedHashMap<>();
     ResultSetMetaData rsMetaData = rs.getMetaData();
     for (int i = 1; i <= rsMetaData.getColumnCount(); i++) {
       String identifier = rsMetaData.getColumnName(i);
       String alias = rsMetaData.getColumnLabel(i);
       if (alias != null)
         identifier = alias;
-      attributes.put(identifier, rs.getString(i));
+      attributes.put(identifier, rs.getObject(i));
     }
     return attributes;
   }

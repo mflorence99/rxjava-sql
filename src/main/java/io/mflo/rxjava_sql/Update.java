@@ -32,7 +32,7 @@ public final class Update implements Parameters {
 
   // state accumulated by fluent API
   // NOTE: execute should never modify these fields, so a Update can be reused
-  private Result parameters = new Result();
+  private Map<String,Object> parameters = new HashMap();
 
   /**
    * Private ctor: use <code>SQL.update</code>
@@ -97,7 +97,7 @@ public final class Update implements Parameters {
    * @return  this Query
    */
   public Update parameters(Map<String,Object> parameters) {
-    parameters(new Result(parameters));
+    this.parameters = parameters;
     return this;
   }
 
@@ -109,12 +109,12 @@ public final class Update implements Parameters {
    *
    * <p><b>Note:</b> either named or positional parameters can be used, but not both.</p>
    *
-   * @param   parameters parameter values by name in a Result object
+   * @param   result parameter values by name in a Result object
    *
    * @return  this Query
    */
-  public Update parameters(Result parameters) {
-    this.parameters = parameters;
+  public Update parameters(Result result) {
+    this.parameters = result.getAttributes();
     return this;
   }
 

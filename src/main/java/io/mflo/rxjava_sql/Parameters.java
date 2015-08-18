@@ -28,16 +28,15 @@ public interface Parameters {
    * Parameters can be named (:name) or positional (?).
    *
    * @param   stmt SQL statement
-   * @param   result parameter values mapped in a Result object
+   * @param   parameters to be injected
    * @param   ordinalByName map of parameter positions by parameter name
    *
    * @throws  SQLException when parameter injection fails
    */
   public default void injectParameters(PreparedStatement stmt,
-                                       Result result,
+                                       Map<String,Object> parameters,
                                        Map<String,Integer> ordinalByName)
                       throws SQLException {
-    Map<String,Object> parameters = result.getAttributes();
     Object[] params = (Object[])parameters.get(POSITIONAL);
     if (params != null)
       for (int i = 0; i < params.length; i++)
