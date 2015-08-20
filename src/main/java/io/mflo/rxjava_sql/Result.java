@@ -41,7 +41,19 @@ public final class Result implements Tuple {
    * @param   another <code>Result</code>
    */
   public Result(Result another) {
-    this((another != null)? another.attributes : (LinkedHashMap)null);
+    this(another, (Map)null);
+  }
+
+  /**
+   * Construct one <code>Result</code> as the shallow clone of another
+   * PLUS a Map of accumulated deltas
+   *
+   * @param   another <code>Result</code>
+   * @param   deltas <code>Map</code> of accumulated deltas
+   */
+  public Result(Result another,
+                Map<String,Object> deltas) {
+    this((another != null)? another.attributes : (LinkedHashMap)null, deltas);
   }
 
   /**
@@ -50,10 +62,27 @@ public final class Result implements Tuple {
    * @param   attributes name/value pairs
    */
   protected Result(LinkedHashMap<String,Object> attributes) {
+    this(attributes, (Map)null);
+  }
+
+  /**
+   * Construct one <code>Result</code> as the shallow clone of a map of name/value pairs
+   * PLUS a Map of accumulated deltas
+   *
+   * @param   attributes name/value pairs
+   * @param   deltas <code>Map</code> of accumulated deltas
+   */
+  protected Result(LinkedHashMap<String,Object> attributes,
+                   Map<String,Object> deltas) {
     this.attributes = (attributes != null)? attributes : new LinkedHashMap<>();
     int ordinal = 1;
     for (String name : this.attributes.keySet())
       nameByOrdinal.put(ordinal++, name);
+    // after ordinal has been calculated, apply deltas if any
+    if (deltas != null) {
+      for (String name : deltas.keySet())
+        this.attributes.put(name, deltas.get(name));
+    }
   }
 
   /**
@@ -163,17 +192,6 @@ public final class Result implements Tuple {
    */
   protected Map<String,Object> getAttributes() {
     return new HashMap<>(attributes);
-  }
-
-  /**
-   * Mutate a value
-   *
-   * @param  name of field
-   * @param  value to set
-   */
-  public void set(String name,
-                  Object value) {
-    attributes.put(name, value);
   }
 
   /**
