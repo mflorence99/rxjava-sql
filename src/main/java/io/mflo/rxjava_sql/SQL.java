@@ -79,7 +79,7 @@ public final class SQL {
   }
 
   /**
-   * Create an <code>UYpdate</code> from an SQL DELETE/INSERT/UPDATE statement
+   * Create an <code>Update</code> from an SQL DELETE/INSERT/UPDATE statement
    *
    * @param   sql DELETE/INSERT/UPDATE statement
    *
